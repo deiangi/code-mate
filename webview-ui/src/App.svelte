@@ -96,6 +96,15 @@
       settings: $settings
     });
   }
+  
+  function handleModelChange(event: Event) {
+    const select = event.target as HTMLSelectElement;
+    const model = select.value;
+    if (model) {
+      settings.update(s => ({ ...s, model }));
+      postMessage({ command: 'selectModel', model });
+    }
+  }
 </script>
 
 <main>
@@ -147,7 +156,7 @@
                 {$loadingModels ? 'Loading...' : 'Refresh'}
               </button>
             </label>
-            <select id="model" bind:value={$settings.model}>
+            <select id="model" bind:value={$settings.model} on:change={handleModelChange}>
               {#if $models.length === 0}
                 <option value="">No models available</option>
               {:else}
