@@ -1,5 +1,6 @@
 # Dependencies
 node_modules/
+webview-ui/node_modules/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
@@ -17,6 +18,12 @@ build/
 webview-ui/dist/
 webview-ui/build/
 media/build/
+
+# VS Code settings (but keep extensions and tasks)
+.vscode/settings.json
+.vscode/launch.json
+!.vscode/extensions.json
+!.vscode/tasks.json
 
 # Logs
 logs/
@@ -58,3 +65,9 @@ Thumbs.db
 # Temporary files
 *.tmp
 *.temp
+
+# Project specific
+# User conversations (local development data)
+conversations/
+# Ollama data (if running locally)
+ollama_data/

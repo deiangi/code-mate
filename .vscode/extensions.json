@@ -1,0 +1,13 @@
+{
+	"recommendations": [
+		"ms-vscode.vscode-typescript-next",
+		"svelte.svelte-vscode",
+		"esbenp.prettier-vscode",
+		"ms-vscode.vscode-eslint",
+		"ms-vscode.vscode-json",
+		"bradlc.vscode-tailwindcss",
+		"ms-vscode.vscode-css-peek",
+		"formulahendry.auto-rename-tag",
+		"christian-kohler.path-intellisense"
+	]
+}

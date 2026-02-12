@@ -1,0 +1,57 @@
+{
+	// TypeScript settings
+	"typescript.preferences.importModuleSpecifier": "relative",
+	"typescript.suggest.autoImports": true,
+	"typescript.updateImportsOnFileMove.enabled": "always",
+
+	// ESLint settings
+	"eslint.validate": [
+		"javascript",
+		"javascriptreact",
+		"typescript",
+		"typescriptreact",
+		"svelte"
+	],
+	"eslint.workingDirectories": [
+		".",
+		"webview-ui"
+	],
+
+	// Prettier settings
+	"prettier.configPath": ".prettierrc",
+	"editor.defaultFormatter": "esbenp.prettier-vscode",
+	"editor.formatOnSave": true,
+
+	// Svelte settings
+	"svelte.plugin.typescript.enable": true,
+	"svelte.plugin.typescript.diagnostics.enable": true,
+
+	// Editor settings
+	"editor.tabSize": 2,
+	"editor.insertSpaces": true,
+	"editor.detectIndentation": false,
+	"editor.codeActionsOnSave": {
+		"source.fixAll.eslint": "explicit"
+	},
+
+	// File associations
+	"files.associations": {
+		"*.svelte": "svelte"
+	},
+
+	// Search settings
+	"search.exclude": {
+		"**/node_modules": true,
+		"**/dist": true,
+		"**/build": true,
+		"**/.git": true,
+		"**/out": true,
+		"**/media/build": true
+	},
+
+	// Extension development
+	"extension.workspaceTrust.enabled": true,
+	"extension.experimental.affinity": {
+		"deiangi.code-mate": 1
+	}
+}
