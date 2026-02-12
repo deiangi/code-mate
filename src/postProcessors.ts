@@ -58,7 +58,9 @@ export function executePostProcessor(processor: PostProcessor, text: string): st
   try {
     switch (processor.type) {
       case 'regex-replace':
-        if (!processor.pattern) return text;
+        if (!processor.pattern) {
+          return text;
+        }
         try {
           const regex = new RegExp(processor.pattern, 'g');
           return text.replace(regex, processor.replacement || '');
@@ -68,11 +70,15 @@ export function executePostProcessor(processor: PostProcessor, text: string): st
         }
 
       case 'add-prefix':
-        if (!processor.prefix) return text;
+        if (!processor.prefix) {
+          return text;
+        }
         return processor.prefix + text;
 
       case 'add-suffix':
-        if (!processor.suffix) return text;
+        if (!processor.suffix) {
+          return text;
+        }
         return text + processor.suffix;
 
       default:

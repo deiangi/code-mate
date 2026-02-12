@@ -7,7 +7,26 @@
   },
   "plugins": ["@typescript-eslint"],
   "rules": {
-    "@typescript-eslint/naming-convention": "warn",
+    "@typescript-eslint/naming-convention": [
+      "warn",
+      {
+        "selector": "property",
+        "format": ["camelCase"],
+        "filter": {
+          "regex": "^num_ctx$",
+          "match": false
+        }
+      },
+      {
+        "selector": "property",
+        "format": null,
+        "modifiers": ["private"],
+        "filter": {
+          "regex": "^_",
+          "match": true
+        }
+      }
+    ],
     "@typescript-eslint/semi": "warn",
     "curly": "warn",
     "eqeqeq": "warn",

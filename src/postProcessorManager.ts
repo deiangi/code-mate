@@ -222,7 +222,9 @@ export class PostProcessorManager {
    * Get the active profile
    */
   getActiveProfile(): PostProcessorProfile | undefined {
-    if (!this.activeProfileId) return undefined;
+    if (!this.activeProfileId) {
+      return undefined;
+    }
     return this.profiles.get(this.activeProfileId);
   }
 

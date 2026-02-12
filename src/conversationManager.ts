@@ -93,7 +93,9 @@ export class ConversationManager {
    * Compress context array to base64 string
    */
   private async compressContext(context: number[]): Promise<string> {
-    if (!context || context.length === 0) return '';
+    if (!context || context.length === 0) {
+      return '';
+    }
     const jsonStr = JSON.stringify(context);
     const compressed = await gzip(Buffer.from(jsonStr, 'utf-8'));
     return compressed.toString('base64');
@@ -103,7 +105,9 @@ export class ConversationManager {
    * Decompress base64 string back to context array
    */
   private async decompressContext(compressed: string): Promise<number[]> {
-    if (!compressed) return [];
+    if (!compressed) {
+      return [];
+    }
     try {
       const buffer = Buffer.from(compressed, 'base64');
       const decompressed = await gunzip(buffer);
@@ -189,7 +193,9 @@ export class ConversationManager {
     const conversations: ConversationSummary[] = [];
 
     for (const file of files) {
-      if (!file.endsWith('.json')) continue;
+      if (!file.endsWith('.json')) {
+        continue;
+      }
 
       try {
         const filePath = path.join(this.storagePath, file);
@@ -264,7 +270,9 @@ export class ConversationManager {
    */
   async rename(id: string, newName: string): Promise<boolean> {
     const conversation = await this.load(id);
-    if (!conversation) return false;
+    if (!conversation) {
+      return false;
+    }
 
     conversation.name = newName;
     conversation.updatedAt = new Date().toISOString();
