@@ -267,7 +267,7 @@ export class OllamaClient {
         { timeout: 5000 }
       );
       this.logDebug(`Successfully retrieved model info for ${model}: ${JSON.stringify(response.data, null, 2)}`);
-      return response.data;
+      return { ...response.data, name: model };
     } catch (error) {
       this.logDebug(`Failed to get model info for ${modelName || this.config.model}: ${error}`);
       return null;
