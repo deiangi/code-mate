@@ -103,6 +103,7 @@ export class ChatPanel {
       case 'webviewReady':
         // Webview is ready, send initial data
         const config = vscode.workspace.getConfiguration('code-mate');
+        const modelInfo = await this._ollamaClient.getModelInfo();
         this._panel.webview.postMessage({
           command: 'settingsLoaded',
           settings: {
@@ -112,7 +113,8 @@ export class ChatPanel {
             autoComplete: config.get('autoComplete') || true,
             contextSize: config.get('contextSize') || 4096,
             maxContextSize: config.get('maxContextSize') || 131072,
-          }
+          },
+          modelInfo: modelInfo
         });
         break;
       case 'sendMessage':
@@ -166,8 +168,9 @@ export class ChatPanel {
     }
   }
 
-  private _updateWebviewSettings() {
+  private async _updateWebviewSettings() {
     const config = vscode.workspace.getConfiguration('code-mate');
+    const modelInfo = await this._ollamaClient.getModelInfo();
     this._panel.webview.postMessage({
       command: 'settingsLoaded',
       settings: {
@@ -177,7 +180,8 @@ export class ChatPanel {
         autoComplete: config.get('autoComplete') || true,
         contextSize: config.get('contextSize') || 4096,
         maxContextSize: config.get('maxContextSize') || 131072,
-      }
+      },
+      modelInfo: modelInfo
     });
   }
 
@@ -781,6 +785,21 @@ export class ChatPanel {
         model: model,
         temperature: updatedConfig.get('temperature') as number || 0.7,
         contextSize: updatedConfig.get('contextSize') as number || 4096,
+      });
+      
+      // Fetch new model info and update webview
+      const modelInfo = await this._ollamaClient.getModelInfo(model);
+      this._panel.webview.postMessage({
+        command: 'settingsLoaded',
+        settings: {
+          ollamaUrl: updatedConfig.get('ollamaUrl') || 'http://localhost:11434',
+          model: model,
+          temperature: updatedConfig.get('temperature') || 0.7,
+          autoComplete: updatedConfig.get('autoComplete') || true,
+          contextSize: updatedConfig.get('contextSize') || 4096,
+          maxContextSize: updatedConfig.get('maxContextSize') || 131072,
+        },
+        modelInfo: modelInfo
       });
       
       vscode.window.showInformationMessage(`Model changed to: ${model}`);
