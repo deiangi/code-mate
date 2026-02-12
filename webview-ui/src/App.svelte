@@ -22,8 +22,14 @@
   // Reactive: current selected model (use setting if valid, otherwise empty)
   $: currentModel = $models.length > 0 && $models.includes($settings.model) ? $settings.model : '';
   
+  // Debug: log currentModel changes
+  $: if (typeof window !== 'undefined') {
+    console.log('[ConfigPanel] currentModel changed:', currentModel, 'models:', $models, 'settings.model:', $settings.model);
+  }
+  
   // Sync currentModel back to settings when it changes
   $: if (currentModel && currentModel !== $settings.model) {
+    console.log('[ConfigPanel] Syncing currentModel to settings:', currentModel);
     settings.update(s => ({ ...s, model: currentModel }));
   }
   onMount(() => {
@@ -31,17 +37,20 @@
     onMessage((msg) => {
       switch (msg.command) {
         case 'loadSettings':
+          console.log('[ConfigPanel] loadSettings received:', msg.settings);
           settings.set(msg.settings);
           tempModel = msg.settings.model;
           break;
           
         case 'modelsLoaded':
+          console.log('[ConfigPanel] modelsLoaded received:', msg.models);
           loadingModels.set(false);
           if (msg.success) {
             models.set(msg.models);
             // Update selected model if it exists in new list
             const currentModel = $settings.model;
             if (!msg.models.includes(currentModel) && msg.models.length > 0) {
+              console.log('[ConfigPanel] Current model not in list, selecting first:', msg.models[0]);
               settings.update(s => ({ ...s, model: msg.models[0] }));
             }
           } else {
@@ -111,6 +120,7 @@
   function handleModelChange(event: Event) {
     const select = event.target as HTMLSelectElement;
     const model = select.value;
+    console.log('[ConfigPanel] handleModelChange called with model:', model);
     if (model) {
       currentModel = model;
       postMessage({ command: 'selectModel', model });

@@ -54,17 +54,20 @@
           break;
           
         case 'modelsLoaded':
+          console.log('[ChatApp] modelsLoaded received:', msg.models, 'currentModel:', msg.currentModel);
           models.set(msg.models || []);
           // Update settings with current model, or select first available model
           settings.update(s => {
             const availableModels = msg.models || [];
             const currentModel = msg.currentModel || s.model;
             const validModel = availableModels.includes(currentModel) ? currentModel : (availableModels.length > 0 ? availableModels[0] : '');
+            console.log('[ChatApp] Setting valid model:', validModel, 'from available:', availableModels);
             return { ...s, model: validModel };
           });
           break;
           
         case 'settingsLoaded':
+          console.log('[ChatApp] settingsLoaded received:', msg.settings);
           settings.set(msg.settings || {});
           if (msg.modelInfo) {
             modelInfo.set(msg.modelInfo);

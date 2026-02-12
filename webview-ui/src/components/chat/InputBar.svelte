@@ -18,8 +18,14 @@
   // Reactive: current selected model (use setting if valid, otherwise empty)
   $: currentModel = $models.length > 0 && $models.includes($settings.model) ? $settings.model : '';
   
+  // Debug: log currentModel changes
+  $: if (typeof window !== 'undefined') {
+    console.log('[InputBar] currentModel changed:', currentModel, 'models:', $models, 'settings.model:', $settings.model);
+  }
+  
   // Sync currentModel back to settings when it changes
   $: if (currentModel && currentModel !== $settings.model) {
+    console.log('[InputBar] Syncing currentModel to settings:', currentModel);
     settings.update(s => ({ ...s, model: currentModel }));
   }
   
@@ -55,6 +61,7 @@
   function handleModelChange(event: Event) {
     const select = event.target as HTMLSelectElement;
     const model = select.value;
+    console.log('[InputBar] handleModelChange called with model:', model);
     if (model) {
       currentModel = model;
       postMessage({ command: 'selectModel', model });
