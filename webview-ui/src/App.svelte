@@ -170,6 +170,32 @@
             />
           </div>
           
+          <div class="form-group">
+            <label for="contextSize">Context Size (tokens)</label>
+            <input
+              id="contextSize"
+              type="number"
+              bind:value={$settings.contextSize}
+              min="512"
+              max="32768"
+              step="1024"
+            />
+            <small>Current context window size used for conversations</small>
+          </div>
+          
+          <div class="form-group">
+            <label for="maxContextSize">Max Context Size (tokens)</label>
+            <input
+              id="maxContextSize"
+              type="number"
+              bind:value={$settings.maxContextSize}
+              min="1024"
+              max="1048576"
+              step="1024"
+            />
+            <small>Maximum allowed context size (limits the context slider)</small>
+          </div>
+          
           <div class="form-group checkbox">
             <label>
               <input

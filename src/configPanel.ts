@@ -249,6 +249,8 @@ export class ConfigPanel {
       model: config.get('model') || 'mistral',
       temperature: config.get('temperature') || 0.7,
       autoComplete: config.get('autoComplete') || true,
+      contextSize: config.get('contextSize') || 4096,
+      maxContextSize: config.get('maxContextSize') || 131072,
     };
 
     this._panel.webview.postMessage({ command: 'loadSettings', settings });
@@ -261,6 +263,8 @@ export class ConfigPanel {
       await config.update('model', settings.model, true);
       await config.update('temperature', settings.temperature, true);
       await config.update('autoComplete', settings.autoComplete, true);
+      await config.update('contextSize', settings.contextSize, true);
+      await config.update('maxContextSize', settings.maxContextSize, true);
 
       vscode.window.showInformationMessage('Code Mate settings saved!');
       this._panel.webview.postMessage({ command: 'settingsSaved', success: true });
