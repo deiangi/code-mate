@@ -144,7 +144,7 @@
   <div class="input-container">
     <!-- Top line: Context usage -->
     <div class="context-usage">
-      <span>📦 {$contextTokenCount || 0} / {$settings.contextSize || 4096} tokens</span>
+      <span>📦 {$contextTokenCount || 0} / {formatContextSize($settings.contextSize || 4096)} tokens</span>
       <div class="context-progress">
         <div class="context-bar">
           <div 
@@ -186,7 +186,7 @@
       </div>
       
       <div class="context-section">
-        <span class="context-label">Context: {$settings.contextSize || 4096} tokens (~{contextRAM})</span>
+        <span class="context-label">Context: {formatContextSize($settings.contextSize || 4096)} tokens (~{contextRAM})</span>
         <div class="context-slider">
           <input
             type="number"

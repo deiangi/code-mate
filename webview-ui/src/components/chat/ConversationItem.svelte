@@ -44,6 +44,14 @@
     if (diffDays < 7) return `${diffDays} days ago`;
     return date.toLocaleDateString();
   }
+  
+  function formatContextSize(size: number): string {
+    if (size >= 1000) {
+      const kValue = Math.round(size / 1000);
+      return `${kValue}K`;
+    }
+    return size.toString();
+  }
 </script>
 
 <div 
@@ -59,7 +67,7 @@
     </div>
     {#if conversation.contextSize !== undefined}
       <div class="conv-context">
-        📦 {conversation.lastContextSize || 0} / {conversation.contextSize} tokens
+        📦 {conversation.lastContextSize || 0} / {formatContextSize(conversation.contextSize)} tokens
       </div>
     {/if}
   </div>
