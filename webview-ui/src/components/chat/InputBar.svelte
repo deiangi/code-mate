@@ -15,6 +15,14 @@
   const CONTEXT_MIN = 1024;
   // CONTEXT_MAX is now dynamic based on settings
   
+  // Reactive: current selected model (use setting if valid, otherwise empty)
+  $: currentModel = $models.length > 0 && $models.includes($settings.model) ? $settings.model : '';
+  
+  // Sync currentModel back to settings when it changes
+  $: if (currentModel && currentModel !== $settings.model) {
+    settings.update(s => ({ ...s, model: currentModel }));
+  }
+  
   function handleSend() {
     const text = inputText.trim();
     if (!text || $isStreaming) return;
@@ -48,7 +56,7 @@
     const select = event.target as HTMLSelectElement;
     const model = select.value;
     if (model) {
-      settings.update(s => ({ ...s, model }));
+      currentModel = model;
       postMessage({ command: 'selectModel', model });
     }
   }
@@ -148,7 +156,7 @@
     <div class="controls-row">
       <div class="model-section">
         <span class="model-label">Model:</span>
-        <select class="model-select" value={$settings.model} on:change={handleModelChange}>
+        <select class="model-select" value={currentModel} on:change={handleModelChange}>
           {#if $models.length === 0}
             <option value="">Loading models...</option>
           {:else}
