@@ -9,6 +9,7 @@
   let inputText = '';
   let textareaEl: HTMLTextAreaElement;
   let contextSizeSlider: HTMLInputElement;
+  let currentModel = '';
   
   // Context size configuration
   const CONTEXT_STEP = 1024; // Smaller step for smoother slider

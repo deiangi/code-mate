@@ -18,9 +18,14 @@
   import ProcessorList from './components/ProcessorList.svelte';
   
   let tempModel = '';
+  let currentModel = '';
   
   // Reactive: current selected model (use setting if valid, otherwise empty)
-  $: currentModel = $models.length > 0 && $models.includes($settings.model) ? $settings.model : '';
+  $: {
+    currentModel = $models.length > 0 && $models.includes($settings.model) ? $settings.model : '';
+    console.log('[ConfigPanel] currentModel changed:', currentModel, 'models:', $models, 'settings.model:', $settings.model);
+  }
+
   
   // Debug: log currentModel changes
   $: if (typeof window !== 'undefined') {
