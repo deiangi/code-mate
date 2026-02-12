@@ -99,9 +99,9 @@
   function getModelMaxContext(modelName: string, modelInfo: any): number {
     // First try to get context from actual model info
     if (modelInfo && modelInfo.parameters) {
-      // Look for num_ctx in parameters string
+      // Look for num_ctx in parameters string (format: "PARAMETER num_ctx 202752")
       const params = modelInfo.parameters;
-      const numCtxMatch = params.match(/num_ctx=(\d+)/);
+      const numCtxMatch = params.match(/num_ctx\s+(\d+)/);
       if (numCtxMatch) {
         return parseInt(numCtxMatch[1]);
       }
@@ -125,7 +125,7 @@
   $: messageCount = $messages.length;
   $: modelMaxContext = getModelMaxContext($settings.model || '', $modelInfo);
   $: userMaxContext = $settings.maxContextSize || 131072;
-  $: hasRealModelContext = $modelInfo && $modelInfo.parameters && $modelInfo.parameters.match(/num_ctx=(\d+)/);
+  $: hasRealModelContext = $modelInfo && $modelInfo.parameters && $modelInfo.parameters.match(/num_ctx\s+(\d+)/);
   $: currentContextMax = hasRealModelContext ? modelMaxContext : userMaxContext;
   $: contextRAM = calculateContextRAM($settings.contextSize || 4096);
   $: contextPercentage = (($contextTokenCount || 0) / ($settings.contextSize || 4096)) * 100;
