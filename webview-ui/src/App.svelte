@@ -52,6 +52,10 @@
           }
           break;
           
+        case 'settingsLoaded':
+          settings.set(msg.settings);
+          break;
+          
         case 'loadPostProcessors':
           processors.set(msg.processors || []);
           creatingProcessor.set(false);
