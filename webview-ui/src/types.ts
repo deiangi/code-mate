@@ -33,6 +33,7 @@ export interface Settings {
   temperature: number;
   autoComplete: boolean;
   contextSize: number;
+  maxContextSize: number;
 }
 
 export interface WebviewMessage {

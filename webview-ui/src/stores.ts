@@ -7,7 +7,8 @@ export const settings = writable<Settings>({
   model: '',
   temperature: 0.7,
   autoComplete: true,
-  contextSize: 4096
+  contextSize: 4096,
+  maxContextSize: 131072
 });
 
 // Available models

@@ -103,6 +103,7 @@ export class ChatPanel {
             temperature: config.get('temperature') || 0.7,
             autoComplete: config.get('autoComplete') || true,
             contextSize: config.get('contextSize') || 4096,
+            maxContextSize: config.get('maxContextSize') || 131072,
           }
         });
         break;

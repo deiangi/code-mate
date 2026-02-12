@@ -13,7 +13,7 @@
   // Context size configuration
   const CONTEXT_STEP = 1024; // Smaller step for smoother slider
   const CONTEXT_MIN = 1024;
-  const CONTEXT_MAX = 262144; // 256k
+  // CONTEXT_MAX is now dynamic based on settings
   
   function handleSend() {
     const text = inputText.trim();
@@ -94,7 +94,9 @@
   }
   
   $: messageCount = $messages.length;
-  $: currentContextMax = getModelMaxContext($settings.model || '');
+  $: modelMaxContext = getModelMaxContext($settings.model || '');
+  $: userMaxContext = $settings.maxContextSize || 131072;
+  $: currentContextMax = Math.min(modelMaxContext, userMaxContext);
   $: contextRAM = calculateContextRAM($settings.contextSize || 4096);
   $: contextPercentage = (($contextTokenCount || 0) / ($settings.contextSize || 4096)) * 100;
 </script>
@@ -147,7 +149,7 @@
             type="number"
             class="context-input"
             min={CONTEXT_MIN}
-            max={Math.min(CONTEXT_MAX, currentContextMax)}
+            max={currentContextMax}
             step={CONTEXT_STEP}
             bind:value={$settings.contextSize}
             on:input={handleContextSizeChange}
@@ -157,7 +159,7 @@
             type="range"
             class="context-slider-input"
             min={CONTEXT_MIN}
-            max={Math.min(CONTEXT_MAX, currentContextMax)}
+            max={currentContextMax}
             step={CONTEXT_STEP}
             bind:value={$settings.contextSize}
             on:input={handleContextSizeChange}

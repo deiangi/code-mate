@@ -114,6 +114,13 @@
           "maximum": 32768,
           "description": "Context window size in tokens (num_ctx parameter for Ollama)"
         },
+        "code-mate.maxContextSize": {
+          "type": "number",
+          "default": 131072,
+          "minimum": 1024,
+          "maximum": 1048576,
+          "description": "Maximum allowed context size in tokens (limits the context size slider)"
+        },
         "code-mate.autoComplete": {
           "type": "boolean",
           "default": true,
