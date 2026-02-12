@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { postMessage, onMessage } from '../../vscode';
+  import { postMessage, onMessage, signalReady } from '../../vscode';
   import { models, modelInfo } from '../../stores';
   import Sidebar from './Sidebar.svelte';
   import ChatArea from './ChatArea.svelte';
@@ -55,8 +55,13 @@
           
         case 'modelsLoaded':
           models.set(msg.models || []);
-          // Update settings with current model
-          settings.update(s => ({ ...s, model: msg.currentModel || s.model }));
+          // Update settings with current model, or select first available model
+          settings.update(s => {
+            const availableModels = msg.models || [];
+            const currentModel = msg.currentModel || s.model;
+            const validModel = availableModels.includes(currentModel) ? currentModel : (availableModels.length > 0 ? availableModels[0] : '');
+            return { ...s, model: validModel };
+          });
           break;
           
         case 'settingsLoaded':

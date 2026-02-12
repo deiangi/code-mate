@@ -149,9 +149,13 @@
       <div class="model-section">
         <span class="model-label">Model:</span>
         <select class="model-select" value={$settings.model} on:change={handleModelChange}>
-          {#each $models as model}
-            <option value={model}>{model}</option>
-          {/each}
+          {#if $models.length === 0}
+            <option value="">Loading models...</option>
+          {:else}
+            {#each $models as model}
+              <option value={model}>{model}</option>
+            {/each}
+          {/if}
         </select>
       </div>
       
