@@ -1,0 +1,237 @@
+{
+  "name": "code-mate",
+  "displayName": "Code Mate",
+  "description": "VS Code extension with Ollama AI integration for intelligent code assistance",
+  "version": "0.0.1",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "AI",
+    "Code Generation",
+    "Linters"
+  ],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "code-mate.activate",
+        "title": "Activate Code Mate",
+        "category": "Code Mate"
+      },
+      {
+        "command": "code-mate.chat",
+        "title": "Chat",
+        "category": "Code Mate"
+      },
+      {
+        "command": "code-mate.complete",
+        "title": "Complete",
+        "category": "Code Mate"
+      },
+      {
+        "command": "code-mate.explain",
+        "title": "Explain",
+        "category": "Code Mate"
+      },
+      {
+        "command": "code-mate.refactor",
+        "title": "Refactor",
+        "category": "Code Mate"
+      },
+      {
+        "command": "code-mate.configure",
+        "title": "Configure",
+        "category": "Code Mate"
+      },
+      {
+        "command": "code-mate.selectModel",
+        "title": "Select Model",
+        "category": "Code Mate"
+      },
+      {
+        "command": "code-mate.viewApiLog",
+        "title": "View API Log",
+        "category": "Code Mate"
+      }
+    ],
+    "views": {
+      "explorer": [
+        {
+          "id": "code-mate.sidebar",
+          "name": "Code Mate",
+          "icon": "media/code-mate-icon.svg"
+        }
+      ]
+    },
+    "menus": {
+      "commandPalette": [
+        {
+          "command": "code-mate.chat",
+          "when": "workspaceFolderCount != 0"
+        },
+        {
+          "command": "code-mate.complete",
+          "when": "editorHasSelection"
+        },
+        {
+          "command": "code-mate.explain",
+          "when": "editorHasSelection"
+        },
+        {
+          "command": "code-mate.refactor",
+          "when": "editorHasSelection"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "Code Mate",
+      "properties": {
+        "code-mate.ollamaUrl": {
+          "type": "string",
+          "default": "http://localhost:11434",
+          "description": "Ollama API endpoint URL"
+        },
+        "code-mate.model": {
+          "type": "string",
+          "default": "mistral",
+          "description": "Ollama model to use (e.g., mistral, neural-chat, dolphin-mixtral)"
+        },
+        "code-mate.temperature": {
+          "type": "number",
+          "default": 0.7,
+          "minimum": 0,
+          "maximum": 1,
+          "description": "Model temperature for response creativity"
+        },
+        "code-mate.contextSize": {
+          "type": "number",
+          "default": 4096,
+          "minimum": 512,
+          "maximum": 32768,
+          "description": "Context window size in tokens (num_ctx parameter for Ollama)"
+        },
+        "code-mate.autoComplete": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable auto-completion suggestions"
+        },
+        "code-mate.postProcessors.list": {
+          "type": "array",
+          "default": [],
+          "description": "List of post-processor rules",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              },
+              "description": {
+                "type": "string"
+              },
+              "type": {
+                "type": "string",
+                "enum": [
+                  "regex-replace",
+                  "add-prefix",
+                  "add-suffix"
+                ]
+              },
+              "enabled": {
+                "type": "boolean"
+              },
+              "pattern": {
+                "type": "string"
+              },
+              "replacement": {
+                "type": "string"
+              },
+              "prefix": {
+                "type": "string"
+              },
+              "suffix": {
+                "type": "string"
+              },
+              "createdAt": {
+                "type": "string"
+              },
+              "updatedAt": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "code-mate.postProcessors.profiles": {
+          "type": "array",
+          "default": [],
+          "description": "List of post-processor profiles",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              },
+              "description": {
+                "type": "string"
+              },
+              "postProcessorIds": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "createdAt": {
+                "type": "string"
+              },
+              "updatedAt": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "code-mate.postProcessors.activeProfileId": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "default": null,
+          "description": "Currently active post-processor profile"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run build:webview && npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "build:webview": "cd webview-ui && npm install && npm run build",
+    "dev:webview": "cd webview-ui && npm run dev",
+    "pretest": "npm run compile && npm run lint",
+    "lint": "eslint src --ext ts",
+    "test": "node ./out/test/runTest.js"
+  },
+  "devDependencies": {
+    "@types/mocha": "^10.0.6",
+    "@types/node": "^18.x",
+    "@types/vscode": "^1.85.0",
+    "@typescript-eslint/eslint-plugin": "^6.13.2",
+    "@typescript-eslint/parser": "^6.13.2",
+    "@vscode/test-electron": "^2.3.8",
+    "eslint": "^8.54.0",
+    "mocha": "^10.2.0",
+    "typescript": "^5.3.2"
+  },
+  "dependencies": {
+    "axios": "^1.6.2",
+    "marked": "^17.0.1"
+  }
+}

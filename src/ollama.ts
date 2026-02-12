@@ -1,0 +1,244 @@
+import axios from 'axios';
+
+export interface OllamaConfig {
+  url: string;
+  model: string;
+  temperature: number;
+  contextSize?: number;
+}
+
+export class OllamaClient {
+  private config: OllamaConfig;
+  public onDebugLog?: (message: string) => void;
+
+  constructor(config: OllamaConfig) {
+    this.config = config;
+  }
+
+  getModel(): string {
+    return this.config.model;
+  }
+
+  private logDebug(message: string) {
+    if (this.onDebugLog) {
+      this.onDebugLog(message);
+    }
+  }
+
+  async chat(prompt: string, context?: string): Promise<string> {
+    try {
+      const systemPrompt =
+        context ||
+        'You are an intelligent code assistant. Help the user with code-related questions and tasks.';
+
+      const response = await axios.post(
+        `${this.config.url}/api/generate`,
+        {
+          model: this.config.model,
+          prompt: prompt,
+          stream: false,
+          system: systemPrompt,
+          temperature: this.config.temperature,
+          options: {
+            num_ctx: this.config.contextSize || 4096,
+          },
+        },
+        { timeout: 30000 }
+      );
+
+      return response.data.response || '';
+    } catch (error) {
+      throw new Error(`Ollama API error: ${error}`);
+    }
+  }
+
+  async *chatStream(prompt: string, context?: string): AsyncGenerator<string, void, unknown> {
+    try {
+      const systemPrompt =
+        context ||
+        'You are an intelligent code assistant. Help the user with code-related questions and tasks.';
+
+      const response = await axios.post(
+        `${this.config.url}/api/generate`,
+        {
+          model: this.config.model,
+          prompt: prompt,
+          stream: true,
+          system: systemPrompt,
+          temperature: this.config.temperature,
+        },
+        { timeout: 0, responseType: 'stream' }
+      );
+
+      for await (const chunk of response.data) {
+        const lines = chunk.toString().split('\n').filter((l: string) => l.trim());
+        for (const line of lines) {
+          try {
+            const json = JSON.parse(line);
+            if (json.response) {
+              yield json.response;
+            }
+          } catch (e) {
+            // Ignore JSON parse errors
+          }
+        }
+      }
+    } catch (error) {
+      throw new Error(`Ollama API error: ${error}`);
+    }
+  }
+
+  async *chatStreamRaw(prompt: string, context?: string, contextArray?: number[], abortSignal?: AbortSignal): AsyncGenerator<any> {
+    try {
+      const systemPrompt =
+        context ||
+        'You are an intelligent code assistant. Help the user with code-related questions and tasks.';
+
+      const requestPayload: any = {
+        model: this.config.model,
+        prompt: prompt,
+        stream: true,
+        system: systemPrompt,
+        temperature: this.config.temperature,
+        options: {
+          num_ctx: this.config.contextSize || 4096,
+        },
+      };
+
+      // Include context if provided
+      if (contextArray && contextArray.length > 0) {
+        requestPayload.context = contextArray;
+      }
+
+      this.logDebug(`REQUEST URL: POST ${this.config.url}/api/generate`);
+      this.logDebug(`REQUEST PAYLOAD:\n${JSON.stringify(requestPayload, null, 2)}`);
+      this.logDebug(`${'─'.repeat(80)}`);
+
+      const response = await axios.post(
+        `${this.config.url}/api/generate`,
+        requestPayload,
+        { timeout: 0, responseType: 'stream', signal: abortSignal }
+      );
+
+      this.logDebug(`RESPONSE STATUS: ${response.status}`);
+      this.logDebug(`RESPONSE HEADERS: ${JSON.stringify(response.headers, null, 2)}`);
+      this.logDebug(`${'─'.repeat(80)}`);
+      this.logDebug('STREAMING JSON RESPONSES:');
+
+      for await (const chunk of response.data) {
+        const lines = chunk.toString().split('\n').filter((l: string) => l.trim());
+        for (const line of lines) {
+          try {
+            const json = JSON.parse(line);
+            this.logDebug(JSON.stringify(json, null, 2));
+            yield json;
+          } catch (e) {
+            this.logDebug(`[PARSE ERROR] ${line}`);
+          }
+        }
+      }
+      
+      this.logDebug(`${'─'.repeat(80)}`);
+      this.logDebug('STREAM COMPLETE');
+    } catch (error) {
+      const errorMsg = error instanceof Error ? error.message : 'Unknown error';
+      this.logDebug(`ERROR: ${errorMsg}`);
+      if (axios.isAxiosError(error) && error.response) {
+        this.logDebug(`ERROR STATUS: ${error.response.status}`);
+        this.logDebug(`ERROR DATA: ${JSON.stringify(error.response.data, null, 2)}`);
+      }
+      throw new Error(`Ollama API error: ${error}`);
+    }
+  }
+
+  async complete(code: string): Promise<string> {
+    try {
+      const prompt = `Complete this code:\n\n${code}`;
+
+      const response = await axios.post(
+        `${this.config.url}/api/generate`,
+        {
+          model: this.config.model,
+          prompt: prompt,
+          stream: false,
+          system:
+            'You are a code completion assistant. Complete the code snippet provided. Only return the code completion, no explanations.',
+          temperature: this.config.temperature,
+        },
+        { timeout: 30000 }
+      );
+
+      return response.data.response || '';
+    } catch (error) {
+      throw new Error(`Ollama API error: ${error}`);
+    }
+  }
+
+  async explain(code: string): Promise<string> {
+    try {
+      const prompt = `Explain this code:\n\n${code}`;
+
+      const response = await axios.post(
+        `${this.config.url}/api/generate`,
+        {
+          model: this.config.model,
+          prompt: prompt,
+          stream: false,
+          system:
+            'You are a code explanation assistant. Explain the given code in clear, concise language.',
+          temperature: this.config.temperature,
+          options: {
+            num_ctx: this.config.contextSize || 4096,
+          },
+        },
+        { timeout: 30000 }
+      );
+
+      return response.data.response || '';
+    } catch (error) {
+      throw new Error(`Ollama API error: ${error}`);
+    }
+  }
+
+  async refactor(code: string): Promise<string> {
+    try {
+      const prompt = `Refactor this code to be more efficient and cleaner:\n\n${code}`;
+
+      const response = await axios.post(
+        `${this.config.url}/api/generate`,
+        {
+          model: this.config.model,
+          prompt: prompt,
+          stream: false,
+          system:
+            'You are a code refactoring assistant. Suggest improvements to the code for efficiency, readability, and maintainability. Return only the refactored code.',
+          temperature: this.config.temperature,
+          options: {
+            num_ctx: this.config.contextSize || 4096,
+          },
+        },
+        { timeout: 30000 }
+      );
+
+      return response.data.response || '';
+    } catch (error) {
+      throw new Error(`Ollama API error: ${error}`);
+    }
+  }
+
+  async checkConnection(): Promise<boolean> {
+    try {
+      const response = await axios.get(
+        `${this.config.url}/api/tags`,
+        { timeout: 5000 }
+      );
+      return response.status === 200;
+    } catch (error) {
+      return false;
+    }
+  }
+
+  updateConfig(config: Partial<OllamaConfig>) {
+    this.config = { ...this.config, ...config };
+  }
+}

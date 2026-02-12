@@ -1,0 +1,31 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "npm: watch",
+      "type": "shell",
+      "command": "npm",
+      "args": ["run", "watch"],
+      "isBackground": true,
+      "problemMatcher": {
+        "base": "$tsc-watch",
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": "^> tsc",
+          "endsPattern": "^\\[\\d+:\\d+:\\d+( [AP]M)?\\] Found \\d+ error"
+        }
+      }
+    },
+    {
+      "label": "npm: compile",
+      "type": "shell",
+      "command": "npm",
+      "args": ["run", "compile"],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "problemMatcher": "$tsc"
+    }
+  ]
+}
