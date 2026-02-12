@@ -7,6 +7,26 @@ export interface OllamaConfig {
   contextSize?: number;
 }
 
+export interface OllamaModelInfo {
+  name: string;
+  size: number;
+  digest: string;
+  details: {
+    format: string;
+    family: string;
+    families: string[] | null;
+    parameter_size: string;
+    quantization_level: string;
+  };
+  model_info?: {
+    [key: string]: any;
+  };
+  modelfile: string;
+  parameters: string;
+  template: string;
+  details_template?: string;
+}
+
 export class OllamaClient {
   private config: OllamaConfig;
   public onDebugLog?: (message: string) => void;
@@ -235,6 +255,22 @@ export class OllamaClient {
       return response.status === 200;
     } catch (error) {
       return false;
+    }
+  }
+
+  async getModelInfo(modelName?: string): Promise<OllamaModelInfo | null> {
+    try {
+      const model = modelName || this.config.model;
+      const response = await axios.post(
+        `${this.config.url}/api/show`,
+        { name: model },
+        { timeout: 5000 }
+      );
+      this.logDebug(`Successfully retrieved model info for ${model}: ${JSON.stringify(response.data, null, 2)}`);
+      return response.data;
+    } catch (error) {
+      this.logDebug(`Failed to get model info for ${modelName || this.config.model}: ${error}`);
+      return null;
     }
   }
 

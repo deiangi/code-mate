@@ -104,6 +104,9 @@ export class ChatPanel {
         // Webview is ready, send initial data
         const config = vscode.workspace.getConfiguration('code-mate');
         const modelInfo = await this._ollamaClient.getModelInfo();
+        if (modelInfo) {
+          this._apiLogChannel.appendLine(`[CodeMate] Loaded model info for ${modelInfo.name}: ${JSON.stringify(modelInfo.details)}`);
+        }
         this._panel.webview.postMessage({
           command: 'settingsLoaded',
           settings: {
@@ -171,6 +174,9 @@ export class ChatPanel {
   private async _updateWebviewSettings() {
     const config = vscode.workspace.getConfiguration('code-mate');
     const modelInfo = await this._ollamaClient.getModelInfo();
+    if (modelInfo) {
+      this._apiLogChannel.appendLine(`[CodeMate] Updated model info for ${modelInfo.name}: ${JSON.stringify(modelInfo.details)}`);
+    }
     this._panel.webview.postMessage({
       command: 'settingsLoaded',
       settings: {
@@ -789,6 +795,9 @@ export class ChatPanel {
       
       // Fetch new model info and update webview
       const modelInfo = await this._ollamaClient.getModelInfo(model);
+      if (modelInfo) {
+        this._apiLogChannel.appendLine(`[CodeMate] Switched to model ${modelInfo.name}: ${JSON.stringify(modelInfo.details)}`);
+      }
       this._panel.webview.postMessage({
         command: 'settingsLoaded',
         settings: {
