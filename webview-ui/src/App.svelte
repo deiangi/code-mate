@@ -160,7 +160,7 @@
                 {$loadingModels ? 'Loading...' : 'Refresh'}
               </button>
             </label>
-            <select id="model" bind:value={$settings.model} on:change={handleModelChange}>
+            <select id="model" value={$settings.model} on:change={handleModelChange}>
               {#if $models.length === 0}
                 <option value="">No models available</option>
               {:else}
