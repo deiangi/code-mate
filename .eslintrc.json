@@ -13,7 +13,7 @@
         "selector": "property",
         "format": ["camelCase"],
         "filter": {
-          "regex": "^num_ctx$",
+          "regex": "^(num_ctx|parameter_size|quantization_level|model_info|details_template)$",
           "match": false
         }
       },

@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { postMessage, onMessage } from '../../vscode';
-  import { models } from '../../stores';
+  import { models, modelInfo } from '../../stores';
   import Sidebar from './Sidebar.svelte';
   import ChatArea from './ChatArea.svelte';
   import {
@@ -61,6 +61,9 @@
           
         case 'settingsLoaded':
           settings.set(msg.settings || {});
+          if (msg.modelInfo) {
+            modelInfo.set(msg.modelInfo);
+          }
           break;
           
         case 'updateContextInfo':

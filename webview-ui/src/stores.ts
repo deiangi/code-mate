@@ -14,6 +14,9 @@ export const settings = writable<Settings>({
 // Available models
 export const models = writable<string[]>([]);
 
+// Current model information
+export const modelInfo = writable<any>(null);
+
 // All post-processors (global pool)
 export const processors = writable<PostProcessor[]>([]);
 

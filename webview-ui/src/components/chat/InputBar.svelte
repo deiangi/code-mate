@@ -1,7 +1,7 @@
 <script lang="ts">
   import { createEventDispatcher } from 'svelte';
   import { isStreaming, contextTokenCount, messages } from './chatStores';
-  import { models, settings } from '../../stores';
+  import { models, settings, modelInfo } from '../../stores';
   import { postMessage } from '../../vscode';
   
   const dispatch = createEventDispatcher();
@@ -48,6 +48,7 @@
     const select = event.target as HTMLSelectElement;
     const model = select.value;
     if (model) {
+      settings.update(s => ({ ...s, model }));
       postMessage({ command: 'selectModel', model });
     }
   }
@@ -78,8 +79,19 @@
     }
   }
   
-  // Get model max context (rough estimates based on common models)
-  function getModelMaxContext(modelName: string): number {
+  // Get model max context from Ollama model info or fallback to name-based detection
+  function getModelMaxContext(modelName: string, modelInfo: any): number {
+    // First try to get context from actual model info
+    if (modelInfo && modelInfo.parameters) {
+      // Look for num_ctx in parameters string
+      const params = modelInfo.parameters;
+      const numCtxMatch = params.match(/num_ctx=(\d+)/);
+      if (numCtxMatch) {
+        return parseInt(numCtxMatch[1]);
+      }
+    }
+    
+    // Fallback to name-based detection
     const name = modelName.toLowerCase();
     if (name.includes('32k') || name.includes('32b')) return 32768;
     if (name.includes('128k')) return 131072;
@@ -95,7 +107,7 @@
   }
   
   $: messageCount = $messages.length;
-  $: modelMaxContext = getModelMaxContext($settings.model || '');
+  $: modelMaxContext = getModelMaxContext($settings.model || '', $modelInfo);
   $: userMaxContext = $settings.maxContextSize || 131072;
   $: currentContextMax = Math.min(modelMaxContext, userMaxContext);
   $: contextRAM = calculateContextRAM($settings.contextSize || 4096);
@@ -136,7 +148,7 @@
     <div class="controls-row">
       <div class="model-section">
         <span class="model-label">Model:</span>
-        <select class="model-select" bind:value={$settings.model}>
+        <select class="model-select" value={$settings.model} on:change={handleModelChange}>
           {#each $models as model}
             <option value={model}>{model}</option>
           {/each}
