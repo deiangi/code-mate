@@ -77,12 +77,20 @@ export class ChatPanel {
       null
     );
 
-    // Listen for configuration changes to refresh profiles
+    // Listen for configuration changes to refresh profiles and settings
     this._disposables.push(
       vscode.workspace.onDidChangeConfiguration((e) => {
         if (e.affectsConfiguration('code-mate.postProcessors')) {
           this._postProcessorManager.reload();
           this._loadProfiles();
+        }
+        if (e.affectsConfiguration('code-mate.contextSize') || 
+            e.affectsConfiguration('code-mate.maxContextSize') ||
+            e.affectsConfiguration('code-mate.model') ||
+            e.affectsConfiguration('code-mate.temperature') ||
+            e.affectsConfiguration('code-mate.ollamaUrl') ||
+            e.affectsConfiguration('code-mate.autoComplete')) {
+          this._updateWebviewSettings();
         }
       })
     );
@@ -156,6 +164,21 @@ export class ChatPanel {
         await this._compressConversationById(message.id);
         break;
     }
+  }
+
+  private _updateWebviewSettings() {
+    const config = vscode.workspace.getConfiguration('code-mate');
+    this._panel.webview.postMessage({
+      command: 'settingsLoaded',
+      settings: {
+        ollamaUrl: config.get('ollamaUrl') || 'http://localhost:11434',
+        model: config.get('model') || '',
+        temperature: config.get('temperature') || 0.7,
+        autoComplete: config.get('autoComplete') || true,
+        contextSize: config.get('contextSize') || 4096,
+        maxContextSize: config.get('maxContextSize') || 131072,
+      }
+    });
   }
 
   private _stopGeneration() {

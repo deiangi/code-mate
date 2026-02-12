@@ -89,8 +89,9 @@
     if (name.includes('llama') && name.includes('7b')) return 4096;
     if (name.includes('mistral') || name.includes('mixtral')) return 32768;
     if (name.includes('codellama')) return 16384;
-    // Default fallback
-    return 8192;
+    // More permissive default - assume modern models can handle at least 32k
+    // Users can override this with maxContextSize setting
+    return 32768;
   }
   
   $: messageCount = $messages.length;
