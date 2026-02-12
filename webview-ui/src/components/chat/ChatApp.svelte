@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { postMessage, onMessage, signalReady } from '../../vscode';
-  import { models, modelInfo } from '../../stores';
+  import { models, modelInfo, settings } from '../../stores';
   import Sidebar from './Sidebar.svelte';
   import ChatArea from './ChatArea.svelte';
   import {
