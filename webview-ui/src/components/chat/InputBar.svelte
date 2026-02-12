@@ -186,7 +186,7 @@
       </div>
       
       <div class="context-section">
-        <span class="context-label">Context: {formatContextSize($settings.contextSize || 4096)} tokens (~{contextRAM})</span>
+        <span class="context-label">Context: </span>
         <div class="context-slider">
           <input
             type="range"
@@ -198,7 +198,7 @@
             on:input={handleContextSizeChange}
             title="Context window size"
           />
-          <span class="context-max">Max: {formatContextSize(currentContextMax)}</span>
+          <span class="context-max">{formatContextSize($settings.contextSize || 4096)} / {formatContextSize(currentContextMax)} tokens (~{contextRAM})</span>
         </div>
       </div>
       

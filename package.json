@@ -126,6 +126,11 @@
           "default": true,
           "description": "Enable auto-completion suggestions"
         },
+        "code-mate.enableToolCalling": {
+          "type": "boolean",
+          "default": false,
+          "description": "Enable tool calling for workspace file operations (requires compatible model like qwen3)"
+        },
         "code-mate.postProcessors.list": {
           "type": "array",
           "default": [],

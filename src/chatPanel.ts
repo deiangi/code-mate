@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import * as fs from 'fs';
 import axios from 'axios';
-import { OllamaClient } from './ollama';
+import { OllamaClient, ChatMessage, ToolCall } from './ollama';
 import { getPostProcessorManager } from './extension';
 import { executeProfile } from './postProcessors';
 import { ConversationManager, Conversation } from './conversationManager';
@@ -89,7 +89,8 @@ export class ChatPanel {
             e.affectsConfiguration('code-mate.model') ||
             e.affectsConfiguration('code-mate.temperature') ||
             e.affectsConfiguration('code-mate.ollamaUrl') ||
-            e.affectsConfiguration('code-mate.autoComplete')) {
+            e.affectsConfiguration('code-mate.autoComplete') ||
+            e.affectsConfiguration('code-mate.enableToolCalling')) {
           this._updateWebviewSettings();
         }
       })
@@ -186,6 +187,7 @@ export class ChatPanel {
         autoComplete: config.get('autoComplete') || true,
         contextSize: config.get('contextSize') || 4096,
         maxContextSize: config.get('maxContextSize') || 131072,
+        enableToolCalling: config.get('enableToolCalling') || false,
       },
       modelInfo: modelInfo
     });
@@ -351,6 +353,74 @@ export class ChatPanel {
     vscode.window.showInformationMessage(`Forked conversation from message - ready to continue!`);
   }
 
+  // Tool execution methods
+  private async executeTool(toolCall: ToolCall): Promise<string> {
+    const { name, arguments: args } = toolCall.function;
+
+    switch (name) {
+      case 'list_files':
+        return await this.listFiles(args.path);
+      case 'read_file':
+        return await this.readFile(args.path);
+      default:
+        return `Unknown tool: ${name}`;
+    }
+  }
+
+  private async listFiles(path: string): Promise<string> {
+    try {
+      let targetPath: string;
+
+      if (path === '/') {
+        // Root of workspace
+        const workspaceFolders = vscode.workspace.workspaceFolders;
+        if (!workspaceFolders || workspaceFolders.length === 0) {
+          return 'No workspace folder is open.';
+        }
+        targetPath = workspaceFolders[0].uri.fsPath;
+      } else {
+        // Relative path within workspace
+        const workspaceFolders = vscode.workspace.workspaceFolders;
+        if (!workspaceFolders || workspaceFolders.length === 0) {
+          return 'No workspace folder is open.';
+        }
+        targetPath = vscode.Uri.joinPath(workspaceFolders[0].uri, path).fsPath;
+      }
+
+      const stats = await fs.promises.stat(targetPath);
+      if (!stats.isDirectory()) {
+        return `${path} is not a directory.`;
+      }
+
+      const entries = await fs.promises.readdir(targetPath, { withFileTypes: true });
+      const files = entries.map(entry => {
+        const type = entry.isDirectory() ? '[DIR]' : '[FILE]';
+        return `${type} ${entry.name}`;
+      });
+
+      return `Contents of ${path}:\n${files.join('\n')}`;
+    } catch (error) {
+      return `Error listing files in ${path}: ${error}`;
+    }
+  }
+
+  private async readFile(path: string): Promise<string> {
+    try {
+      const workspaceFolders = vscode.workspace.workspaceFolders;
+      if (!workspaceFolders || workspaceFolders.length === 0) {
+        return 'No workspace folder is open.';
+      }
+
+      const fileUri = vscode.Uri.joinPath(workspaceFolders[0].uri, path);
+      const fileContent = await vscode.workspace.fs.readFile(fileUri);
+      const content = Buffer.from(fileContent).toString('utf8');
+
+      return `Contents of ${path}:\n${content}`;
+    } catch (error) {
+      return `Error reading file ${path}: ${error}`;
+    }
+  }
+
   private async _handleChatMessage(userMessage: string) {
     const messageId = ++this._messageId;
 
@@ -398,32 +468,117 @@ export class ChatPanel {
     const startTime = Date.now();
 
     try {
-      // Stream raw JSON responses for logging
-      let tokenCount = 0;
-      let assistantResponse = '';
+      // Check if tool calling is enabled
+      const config = vscode.workspace.getConfiguration('code-mate');
+      const enableToolCalling = config.get('enableToolCalling') || false;
 
-      // Use custom chat with context
-      for await (const jsonResponse of this._ollamaClient.chatStreamRaw(
-        userMessage,
-        undefined,
-        this._conversationContext.length > 0 ? this._conversationContext : undefined,
-        this._abortController.signal
-      )) {
-        // Extract and display text content
-        if (jsonResponse.response) {
-          assistantResponse += jsonResponse.response;
+      let assistantResponse = '';
+      let tokenCount = 0;
+
+      if (enableToolCalling) {
+        // Use tool calling chat
+        this._apiLogChannel.appendLine('TOOL CALLING ENABLED - Using chat API with tools');
+
+        // Convert conversation history to ChatMessage format
+        const messages: ChatMessage[] = this._conversationHistory.map(h => ({
+          role: h.role as 'user' | 'assistant',
+          content: h.content
+        }));
+
+        const response = await this._ollamaClient.chatWithTools(messages);
+
+        // Handle tool calls if present
+        if (response.message.tool_calls && response.message.tool_calls.length > 0) {
+          this._apiLogChannel.appendLine(`TOOL CALLS DETECTED: ${response.message.tool_calls.length}`);
+
+          // Show initial assistant response (if any)
+          if (response.message.content) {
+            assistantResponse = response.message.content;
+            this._panel.webview.postMessage({
+              command: 'updateMessage',
+              id: assistantId,
+              content: response.message.content,
+              append: false,
+            });
+          }
+
+          // Execute tools and show results
+          for (const toolCall of response.message.tool_calls) {
+            this._apiLogChannel.appendLine(`EXECUTING TOOL: ${toolCall.function.name}(${JSON.stringify(toolCall.function.arguments)})`);
+
+            const toolResult = await this.executeTool(toolCall);
+            this._apiLogChannel.appendLine(`TOOL RESULT: ${toolResult.substring(0, 200)}...`);
+
+            // Add tool result to conversation
+            const toolMessageId = ++this._messageId;
+            this._panel.webview.postMessage({
+              command: 'addMessage',
+              id: toolMessageId,
+              role: 'tool',
+              content: toolResult,
+              toolName: toolCall.function.name,
+            });
+
+            // Continue conversation with tool result
+            const followUpMessages: ChatMessage[] = [
+              ...messages,
+              response.message,
+              { role: 'tool', tool_name: toolCall.function.name, content: toolResult }
+            ];
+
+            const finalResponse = await this._ollamaClient.chatWithTools(followUpMessages);
+
+            if (finalResponse.message.content) {
+              assistantResponse += (assistantResponse ? '\n\n' : '') + finalResponse.message.content;
+              this._panel.webview.postMessage({
+                command: 'updateMessage',
+                id: assistantId,
+                content: finalResponse.message.content,
+                append: true,
+              });
+            }
+          }
+        } else {
+          // No tool calls, just show the response
+          assistantResponse = response.message.content || '';
           this._panel.webview.postMessage({
             command: 'updateMessage',
             id: assistantId,
-            content: jsonResponse.response,
-            append: true,
+            content: assistantResponse,
+            append: false,
           });
-          tokenCount++;
         }
 
-        // Update context for next request
-        if (jsonResponse.context) {
-          this._conversationContext = jsonResponse.context;
+        // Note: Tool calling doesn't provide context tokens in the same way
+        tokenCount = assistantResponse.split(' ').length; // Rough estimate
+
+      } else {
+        // Use regular streaming chat
+        this._apiLogChannel.appendLine('TOOL CALLING DISABLED - Using streaming chat');
+
+        // Stream raw JSON responses for logging
+        for await (const jsonResponse of this._ollamaClient.chatStreamRaw(
+          userMessage,
+          undefined,
+          this._conversationContext.length > 0 ? this._conversationContext : undefined,
+          this._abortController.signal
+        )) {
+          // Extract and display text content
+          if (jsonResponse.response) {
+            assistantResponse += jsonResponse.response;
+            this._panel.webview.postMessage({
+              command: 'updateMessage',
+              id: assistantId,
+              content: jsonResponse.response,
+              append: true,
+            });
+            tokenCount++;
+          }
+
+          // Update context for next request
+          if (jsonResponse.context) {
+            this._conversationContext = jsonResponse.context;
+          }
         }
       }
 

@@ -27,6 +27,41 @@ export interface OllamaModelInfo {
   details_template?: string;
 }
 
+export interface Tool {
+  type: 'function';
+  function: {
+    name: string;
+    description: string;
+    parameters: {
+      type: 'object';
+      required: string[];
+      properties: Record<string, any>;
+    };
+  };
+}
+
+export interface ToolCall {
+  type: 'function';
+  function: {
+    index?: number;
+    name: string;
+    arguments: Record<string, any>;
+  };
+}
+
+export interface ChatMessage {
+  role: 'user' | 'assistant' | 'tool';
+  content: string;
+  tool_calls?: ToolCall[];
+  tool_name?: string;
+  thinking?: string;
+}
+
+export interface ChatResponse {
+  message: ChatMessage;
+  done: boolean;
+}
+
 export class OllamaClient {
   private config: OllamaConfig;
   public onDebugLog?: (message: string) => void;
@@ -276,5 +311,83 @@ export class OllamaClient {
 
   updateConfig(config: Partial<OllamaConfig>) {
     this.config = { ...this.config, ...config };
+  }
+
+  // Tool definitions for workspace operations
+  getAvailableTools(): Tool[] {
+    return [
+      {
+        type: 'function',
+        function: {
+          name: 'list_files',
+          description: 'List the contents of a folder within the workspace. "/" is the root folder of the workspace.',
+          parameters: {
+            type: 'object',
+            required: ['path'],
+            properties: {
+              path: {
+                type: 'string',
+                description: 'The path to the folder to list. Use "/" for the workspace root.'
+              }
+            }
+          }
+        }
+      },
+      {
+        type: 'function',
+        function: {
+          name: 'read_file',
+          description: 'Read the contents of a file within the workspace.',
+          parameters: {
+            type: 'object',
+            required: ['path'],
+            properties: {
+              path: {
+                type: 'string',
+                description: 'The path to the file to read, relative to the workspace root.'
+              }
+            }
+          }
+        }
+      }
+    ];
+  }
+
+  // Chat with tool calling support
+  async chatWithTools(messages: ChatMessage[], context?: string): Promise<ChatResponse> {
+    try {
+      const systemPrompt = context || 'You are an intelligent code assistant. Help the user with code-related questions and tasks. You have access to tools to explore the workspace.';
+
+      const requestPayload = {
+        model: this.config.model,
+        messages: [
+          { role: 'system', content: systemPrompt },
+          ...messages
+        ],
+        stream: false,
+        tools: this.getAvailableTools(),
+        options: {
+          temperature: this.config.temperature,
+          num_ctx: this.config.contextSize || 4096,
+        }
+      };
+
+      this.logDebug(`CHAT REQUEST: ${JSON.stringify(requestPayload, null, 2)}`);
+
+      const response = await axios.post(
+        `${this.config.url}/api/chat`,
+        requestPayload,
+        { timeout: 60000 }
+      );
+
+      this.logDebug(`CHAT RESPONSE: ${JSON.stringify(response.data, null, 2)}`);
+
+      return {
+        message: response.data.message,
+        done: response.data.done
+      };
+    } catch (error) {
+      throw new Error(`Ollama chat error: ${error}`);
+    }
   }
 }
