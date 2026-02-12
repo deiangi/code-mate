@@ -19,6 +19,13 @@
   
   let tempModel = '';
   
+  // Reactive: current selected model (use setting if valid, otherwise empty)
+  $: currentModel = $models.length > 0 && $models.includes($settings.model) ? $settings.model : '';
+  
+  // Sync currentModel back to settings when it changes
+  $: if (currentModel && currentModel !== $settings.model) {
+    settings.update(s => ({ ...s, model: currentModel }));
+  }
   onMount(() => {
     // Setup message handler
     onMessage((msg) => {
@@ -105,7 +112,7 @@
     const select = event.target as HTMLSelectElement;
     const model = select.value;
     if (model) {
-      settings.update(s => ({ ...s, model }));
+      currentModel = model;
       postMessage({ command: 'selectModel', model });
     }
   }
@@ -160,7 +167,7 @@
                 {$loadingModels ? 'Loading...' : 'Refresh'}
               </button>
             </label>
-            <select id="model" value={$settings.model} on:change={handleModelChange}>
+            <select id="model" value={currentModel} on:change={handleModelChange}>
               {#if $models.length === 0}
                 <option value="">No models available</option>
               {:else}
