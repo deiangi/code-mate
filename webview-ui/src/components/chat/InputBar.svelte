@@ -189,16 +189,6 @@
         <span class="context-label">Context: {formatContextSize($settings.contextSize || 4096)} tokens (~{contextRAM})</span>
         <div class="context-slider">
           <input
-            type="number"
-            class="context-input"
-            min={CONTEXT_MIN}
-            max={currentContextMax}
-            step={CONTEXT_STEP}
-            bind:value={$settings.contextSize}
-            on:input={handleContextSizeChange}
-            title="Context window size"
-          />
-          <input
             type="range"
             class="context-slider-input"
             min={CONTEXT_MIN}
@@ -372,22 +362,6 @@
     display: flex;
     align-items: center;
     gap: 8px;
-  }
-  
-  .context-input {
-    width: 80px;
-    padding: 2px 6px;
-    border: 1px solid var(--vscode-input-border);
-    border-radius: 3px;
-    background-color: var(--vscode-input-background);
-    color: var(--vscode-input-foreground);
-    font-size: 11px;
-    text-align: center;
-    outline: none;
-  }
-  
-  .context-input:focus {
-    border-color: var(--vscode-focusBorder);
   }
   
   .context-slider-input {
