@@ -1,5 +1,8 @@
 # Code Mate
 
+[![CI](https://github.com/deiangi/code-mate/actions/workflows/ci.yml/badge.svg)](https://github.com/deiangi/code-mate/actions/workflows/ci.yml)
+[![Release](https://github.com/deiangi/code-mate/actions/workflows/release.yml/badge.svg)](https://github.com/deiangi/code-mate/actions/workflows/release.yml)
+
 A VS Code extension that brings intelligent code assistance powered by Ollama, an open-source LLM framework. Similar to roocode, Code Mate provides AI-powered code generation, completion, explanation, and refactoring.
 
 ## Features
@@ -144,19 +147,109 @@ Code Mate runs entirely locally using Ollama. Your code is never sent to externa
 - Custom prompt templates
 - Batch operations
 
+## Development
+
+### Prerequisites
+
+- Node.js 18+ and npm
+- VS Code 1.85.0+
+- Ollama installed and running
+
+### Setup
+
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/deiangi/code-mate.git
+   cd code-mate
+   ```
+
+2. **Install dependencies**
+   ```bash
+   npm install
+   cd webview-ui && npm install && cd ..
+   ```
+
+3. **Build the extension**
+   ```bash
+   npm run build:webview  # Build the webview UI
+   npm run compile        # Compile TypeScript
+   ```
+
+4. **Test the extension**
+   - Press `F5` in VS Code to launch debug instance
+   - Or package it: `npx vsce package`
+
+### Project Structure
+
+```
+code-mate/
+├── src/                    # Extension source code
+│   ├── extension.ts       # Main extension entry point
+│   ├── chatPanel.ts       # Chat panel implementation
+│   ├── ollama.ts          # Ollama API client
+│   └── ...
+├── webview-ui/            # Svelte-based webview UI
+│   ├── src/
+│   │   ├── components/
+│   │   └── stores.ts
+│   └── package.json
+├── media/                 # Built webview assets
+└── package.json          # Extension manifest
+```
+
+### Available Scripts
+
+- `npm run compile` - Compile TypeScript
+- `npm run watch` - Watch mode for development
+- `npm run build:webview` - Build the webview UI
+- `npm run dev:webview` - Start webview development server
+- `npm run lint` - Run ESLint
+- `npm run test` - Run tests (when implemented)
+
 ## Contributing
 
-Contributions are welcome! Feel free to submit issues and pull requests.
+We welcome contributions! Please follow these guidelines:
+
+### Development Workflow
+
+1. **Fork the repository** on GitHub
+2. **Create a feature branch**: `git checkout -b feature/your-feature-name`
+3. **Make your changes** and test thoroughly
+4. **Run linting**: `npm run lint`
+5. **Commit your changes**: `git commit -m "Add: brief description"`
+6. **Push to your fork**: `git push origin feature/your-feature-name`
+7. **Create a Pull Request** on GitHub
+
+### Code Style
+
+- Use TypeScript for all new code
+- Follow the existing ESLint configuration
+- Use meaningful commit messages
+- Add comments for complex logic
+- Test your changes thoroughly
+
+### Reporting Issues
+
+When reporting bugs, please include:
+- VS Code version
+- Ollama version and model used
+- Steps to reproduce the issue
+- Expected vs actual behavior
+- Any relevant error messages
+
+### Feature Requests
+
+We love new ideas! When suggesting features:
+- Describe the problem you're trying to solve
+- Explain how the feature would work
+- Consider edge cases and potential drawbacks
 
 ## License
 
-MIT
+MIT License - see [LICENSE](LICENSE) file for details.
 
-## Related Projects
+## Acknowledgments
 
-- [Ollama](https://ollama.ai) - Local LLM framework
-- [roocode](https://github.com/roocode/roocode) - AI code assistant (inspiration)
-
-## Support
-
-For issues, feature requests, or questions, please create an issue on the GitHub repository.
+- Inspired by [roocode](https://github.com/roocode/roocode)
+- Built with [Ollama](https://ollama.ai) for local AI
+- UI powered by [Svelte](https://svelte.dev)
