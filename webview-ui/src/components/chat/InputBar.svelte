@@ -95,6 +95,15 @@
     }
   }
   
+  // Format number in K (thousands) format
+  function formatContextSize(size: number): string {
+    if (size >= 1000) {
+      const kValue = Math.round(size / 1000);
+      return `${kValue}K`;
+    }
+    return size.toString();
+  }
+  
   // Get model max context from Ollama model info or fallback to name-based detection
   function getModelMaxContext(modelName: string, modelInfo: any): number {
     // First try to get context from actual model info
@@ -199,7 +208,7 @@
             on:input={handleContextSizeChange}
             title="Context window size"
           />
-          <span class="context-max">Max: {currentContextMax.toLocaleString()}</span>
+          <span class="context-max">Max: {formatContextSize(currentContextMax)}</span>
         </div>
       </div>
       
