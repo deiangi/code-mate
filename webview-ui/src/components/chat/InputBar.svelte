@@ -125,7 +125,8 @@
   $: messageCount = $messages.length;
   $: modelMaxContext = getModelMaxContext($settings.model || '', $modelInfo);
   $: userMaxContext = $settings.maxContextSize || 131072;
-  $: currentContextMax = Math.min(modelMaxContext, userMaxContext);
+  $: hasRealModelContext = $modelInfo && $modelInfo.parameters && $modelInfo.parameters.match(/num_ctx=(\d+)/);
+  $: currentContextMax = hasRealModelContext ? modelMaxContext : userMaxContext;
   $: contextRAM = calculateContextRAM($settings.contextSize || 4096);
   $: contextPercentage = (($contextTokenCount || 0) / ($settings.contextSize || 4096)) * 100;
 </script>
